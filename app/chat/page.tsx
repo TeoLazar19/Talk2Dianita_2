@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
+
 
 type Source = {
   title?: string;
@@ -112,12 +114,20 @@ export default function ChatPage() {
 
           {/* HEADER */}
           <header className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-            <div>
-              <div className="text-base font-semibold text-white">Talk2Dianita</div>
-              <div className="text-xs text-white/60 truncate">
-                Logat ca {session?.user?.email}
-              </div>
-            </div>
+          <div className="flex items-center gap-3">
+           <Image
+    src="/logo-horizontal.png"
+    alt="Talk2Dianita"
+    width={160}
+    height={40}
+    priority
+  />
+
+  <div className="hidden sm:block text-xs text-white/60 truncate">
+    Logat ca {session?.user?.email}
+  </div>
+</div>
+
 
             <div className="flex items-center gap-2">
               <label className="flex items-center gap-2 rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-xs text-white">
