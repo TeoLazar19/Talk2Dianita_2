@@ -16,9 +16,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Talk2Dianita",
   description: "Private AI chat",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
