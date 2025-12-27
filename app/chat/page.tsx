@@ -223,28 +223,29 @@ export default function ChatPage() {
 
           <footer className="border-t border-white/10 px-5 py-4">
             <div className="flex gap-3 items-end">
-              <textarea
-                className="flex-1 rounded-2xl border border-white/10 bg-zinc-900 text-white placeholder:text-white/40 p-4 outline-none text-sm resize-none focus:border-white/20"
-                rows={2}
-                placeholder="Scrie aici. Enter trimite. Shift plus Enter pentru rând nou."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    send();
-                  }
-                }}
-              />
+<textarea
+  className="flex-1 rounded-2xl border border-white/10 bg-zinc-900 p-4 text-sm text-white placeholder:text-white/40 caret-white outline-none resize-none focus:border-white/30"
+  rows={2}
+  placeholder="Scrie aici. Enter trimite. Shift plus Enter pentru rând nou."
+  value={input}
+  onChange={(e) => setInput(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  }}
+/>
 
-              <button
-                className="rounded-2xl bg-white text-black px-6 py-3 text-sm font-semibold hover:bg-white/90 transition disabled:opacity-50"
-                onClick={send}
-                disabled={isLoading}
-                type="button"
-              >
-                Send
-              </button>
+<button
+  className="rounded-2xl bg-white text-black px-6 py-3 text-sm font-semibold hover:bg-white/90 transition disabled:opacity-50"
+  onClick={send}
+  disabled={isLoading}
+  type="button"
+>
+  Send
+</button>
+
             </div>
 
             <div className="mt-2 text-xs text-white/50">
