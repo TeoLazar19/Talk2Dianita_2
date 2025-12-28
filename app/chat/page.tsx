@@ -26,12 +26,27 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
 
+  const [thinkingDots, setThinkingDots] = useState(0);
+
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const isAuthed = useMemo(() => Boolean(session?.user?.email), [session?.user?.email]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setThinkingDots(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setThinkingDots((prev) => (prev + 1) % 4);
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   async function send() {
     const text = input.trim();
@@ -245,7 +260,7 @@ export default function ChatPage() {
                     }}
                   >
                     <div className="text-[11px] font-semibold">Dianita</div>
-                    <div className="mt-1">Typing...</div>
+                    <div className="mt-1">Thinking{".".repeat(thinkingDots)}</div>
                   </div>
                 </div>
               )}
