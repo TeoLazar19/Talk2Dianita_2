@@ -48,3 +48,6 @@ next-env.d.ts
 # prisma generated (daca exista in proiectul tau)
 # de obicei Prisma Client e in node_modules, dar pastram si astea daca apar
 /app/generated/prisma
+
+.vscode/
+
