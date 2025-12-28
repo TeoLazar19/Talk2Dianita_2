@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
+import SettingsModal from "./settingsModal";
 
 type Source = {
   title?: string;
@@ -16,6 +17,26 @@ type Message = {
   sources?: Source[];
 };
 
+type Theme = {
+  appText: string;
+  panelBg: string;
+  panelBorder: string;
+  userBubbleBg: string;
+  assistantBubbleBg: string;
+  inputBg: string;
+  inputBorder: string;
+};
+
+const defaultTheme: Theme = {
+  appText: "#FFFFFF",
+  panelBg: "#09090B",
+  panelBorder: "rgba(255,255,255,0.15)",
+  userBubbleBg: "#27272A",
+  assistantBubbleBg: "#18181B",
+  inputBg: "#18181B",
+  inputBorder: "rgba(255,255,255,0.15)",
+};
+
 export default function ChatPage() {
   const { data: session, status } = useSession();
 
@@ -24,12 +45,45 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
 
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const isAuthed = useMemo(() => Boolean(session?.user?.email), [session?.user?.email]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (!isAuthed) return;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/preferences", { method: "GET" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.theme) setTheme(data.theme);
+      } catch {}
+    })();
+  }, [isAuthed]);
+
+  async function saveTheme() {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme }),
+      });
+      const data = await res.json();
+      if (data?.theme) setTheme(data.theme);
+      setSettingsOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function send() {
     const text = input.trim();
@@ -56,14 +110,14 @@ export default function ChatPage() {
         ...prev,
         {
           role: "assistant",
-          text: data.reply ?? "Nu am primit răspuns de la server.",
+          text: data.reply ?? "No reply received from server.",
           sources: Array.isArray(data.sources) ? data.sources : [],
         },
       ]);
     } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: "Eroare la request. Uită-te în terminal." },
+        { role: "assistant", text: "Request error. Check the terminal." },
       ]);
     } finally {
       setIsLoading(false);
@@ -83,7 +137,7 @@ export default function ChatPage() {
       <main className="min-h-screen flex items-center justify-center px-6">
         <div className="w-full max-w-md rounded-2xl border border-white/15 bg-zinc-950 p-8 shadow-2xl">
           <div className="text-lg font-semibold text-white">Talk2Dianita</div>
-          <div className="mt-2 text-sm text-white/70">Se încarcă sesiunea...</div>
+          <div className="mt-2 text-sm text-white/70">Loading session...</div>
         </div>
       </main>
     );
@@ -94,25 +148,36 @@ export default function ChatPage() {
       <main className="min-h-screen flex items-center justify-center px-6">
         <div className="w-full max-w-md rounded-2xl border border-white/15 bg-zinc-950 p-8 shadow-2xl">
           <div className="text-lg font-semibold text-white">Talk2Dianita</div>
-          <div className="mt-2 text-sm text-white/70">Nu ești logat.</div>
+          <div className="mt-2 text-sm text-white/70">You are not logged in.</div>
           <Link
             href="/login"
             className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition"
           >
-            Login
+            Go to login
           </Link>
         </div>
       </main>
     );
   }
 
-  return (
-    <main className="min-h-screen flex flex-col px-4 py-6">
-      <div className="mx-auto w-full max-w-5xl">
-        <div className="rounded-3xl border border-white/15 bg-zinc-950 shadow-2xl overflow-hidden">
+  const cssVars = {
+    ["--appText" as any]: theme.appText,
+    ["--panelBg" as any]: theme.panelBg,
+    ["--panelBorder" as any]: theme.panelBorder,
+    ["--userBubbleBg" as any]: theme.userBubbleBg,
+    ["--assistantBubbleBg" as any]: theme.assistantBubbleBg,
+    ["--inputBg" as any]: theme.inputBg,
+    ["--inputBorder" as any]: theme.inputBorder,
+  } as React.CSSProperties;
 
-          {/* HEADER */}
-          <header className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+  return (
+    <main className="min-h-screen flex flex-col px-4 py-6" style={cssVars}>
+      <div className="mx-auto w-full max-w-5xl">
+        <div
+          className="rounded-3xl shadow-2xl overflow-hidden border"
+          style={{ background: "var(--panelBg)", borderColor: "var(--panelBorder)" }}
+        >
+          <header className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "var(--panelBorder)" }}>
             <div className="flex flex-col gap-1">
               <Image
                 src="/logo-horizontal.png.png"
@@ -121,13 +186,25 @@ export default function ChatPage() {
                 height={40}
                 priority
               />
-              <div className="text-xs text-white/60 truncate">
-                Logat ca {session?.user?.email}
+              <div className="text-xs truncate" style={{ color: "color-mix(in srgb, var(--appText) 70%, transparent)" }}>
+                Logged in as {session?.user?.email}
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2 rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-xs text-white">
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="rounded-xl border px-3 py-2 text-sm font-semibold transition"
+                style={{ borderColor: "var(--panelBorder)", color: "var(--appText)", background: "rgba(255,255,255,0.06)" }}
+              >
+                Settings
+              </button>
+
+              <label
+                className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs"
+                style={{ borderColor: "var(--panelBorder)", color: "var(--appText)", background: "rgba(255,255,255,0.06)" }}
+              >
                 <input
                   type="checkbox"
                   checked={webSearch}
@@ -138,7 +215,8 @@ export default function ChatPage() {
               </label>
 
               <button
-                className="rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800 transition"
+                className="rounded-xl border px-3 py-2 text-sm transition"
+                style={{ borderColor: "var(--panelBorder)", color: "var(--appText)", background: "rgba(255,255,255,0.06)" }}
                 onClick={clearChat}
                 type="button"
               >
@@ -146,7 +224,8 @@ export default function ChatPage() {
               </button>
 
               <button
-                className="rounded-xl border border-white/15 bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-800 transition"
+                className="rounded-xl border px-3 py-2 text-sm font-semibold transition"
+                style={{ borderColor: "var(--panelBorder)", color: "var(--appText)", background: "rgba(255,255,255,0.06)" }}
                 onClick={logout}
                 type="button"
               >
@@ -155,58 +234,56 @@ export default function ChatPage() {
             </div>
           </header>
 
-          {/* CHAT */}
           <section className="h-[68vh] overflow-auto px-5 py-5">
             {messages.length === 0 ? (
               <div className="h-full flex items-center justify-center text-center">
                 <div>
-                  <div className="text-lg font-semibold text-white">
-                    Scrie primul mesaj
+                  <div className="text-lg font-semibold" style={{ color: "var(--appText)" }}>
+                    Type your first message
                   </div>
-                  <div className="mt-2 text-sm text-white/60">
-                    Conversația începe când trimiți primul mesaj.
+                  <div className="mt-2 text-sm" style={{ color: "color-mix(in srgb, var(--appText) 60%, transparent)" }}>
+                    The conversation starts when you send the first message.
                   </div>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
                 {messages.map((m, i) => (
-                  <div
-                    key={i}
-                    className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-                  >
+                  <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                     <div
-                      className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed border ${
-                        m.role === "user"
-                          ? "bg-zinc-800 text-white border-white/15"
-                          : "bg-zinc-900 text-white border-white/10"
-                      }`}
+                      className="max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed border"
+                      style={{
+                        borderColor: "var(--panelBorder)",
+                        background: m.role === "user" ? "var(--userBubbleBg)" : "var(--assistantBubbleBg)",
+                        color: "var(--appText)",
+                      }}
                     >
-                      <div className="text-[11px] font-semibold text-white/60">
-                        {m.role === "user" ? "Tu" : "Dianita"}
+                      <div className="text-[11px] font-semibold" style={{ color: "color-mix(in srgb, var(--appText) 65%, transparent)" }}>
+                        {m.role === "user" ? "You" : "Dianita"}
                       </div>
 
-                      <div className="mt-1 whitespace-pre-wrap text-white">
-                        {m.text}
-                      </div>
+                      <div className="mt-1 whitespace-pre-wrap">{m.text}</div>
 
                       {m.role === "assistant" && m.sources?.length ? (
-                        <div className="mt-3 text-xs text-white/70">
-                          <div className="font-semibold text-white/60">Surse</div>
+                        <div className="mt-3 text-xs">
+                          <div className="font-semibold" style={{ color: "color-mix(in srgb, var(--appText) 65%, transparent)" }}>
+                            Sources
+                          </div>
                           <ul className="mt-1 list-disc pl-4 space-y-1">
                             {m.sources.slice(0, 5).map((s, idx) => (
-                              <li key={idx}>
+                              <li key={idx} style={{ color: "color-mix(in srgb, var(--appText) 70%, transparent)" }}>
                                 {s.url ? (
                                   <a
                                     href={s.url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="underline decoration-white/30 hover:decoration-white/70"
+                                    className="underline"
+                                    style={{ textDecorationColor: "color-mix(in srgb, var(--appText) 30%, transparent)" }}
                                   >
                                     {s.title ?? s.url}
                                   </a>
                                 ) : (
-                                  <span>{s.title ?? "Sursă"}</span>
+                                  <span>{s.title ?? "Source"}</span>
                                 )}
                               </li>
                             ))}
@@ -219,11 +296,18 @@ export default function ChatPage() {
 
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="max-w-[85%] rounded-2xl px-4 py-3 text-sm bg-zinc-900 text-white border border-white/10">
-                      <div className="text-[11px] font-semibold text-white/60">
+                    <div
+                      className="max-w-[85%] rounded-2xl px-4 py-3 text-sm border"
+                      style={{
+                        borderColor: "var(--panelBorder)",
+                        background: "var(--assistantBubbleBg)",
+                        color: "var(--appText)",
+                      }}
+                    >
+                      <div className="text-[11px] font-semibold" style={{ color: "color-mix(in srgb, var(--appText) 65%, transparent)" }}>
                         Dianita
                       </div>
-                      <div className="mt-1">Scriu acum...</div>
+                      <div className="mt-1">Typing...</div>
                     </div>
                   </div>
                 )}
@@ -233,13 +317,17 @@ export default function ChatPage() {
             )}
           </section>
 
-          {/* INPUT */}
-          <footer className="border-t border-white/10 px-5 py-4">
+          <footer className="border-t px-5 py-4" style={{ borderColor: "var(--panelBorder)" }}>
             <div className="flex gap-3 items-end">
               <textarea
-                className="flex-1 rounded-2xl border border-white/15 bg-zinc-900 p-4 text-sm text-white placeholder:text-white/40 caret-white outline-none resize-none focus:border-white/30"
+                className="flex-1 rounded-2xl border p-4 text-sm outline-none resize-none"
+                style={{
+                  borderColor: "var(--inputBorder)",
+                  background: "var(--inputBg)",
+                  color: "var(--appText)",
+                }}
                 rows={2}
-                placeholder="Scrie aici. Enter trimite. Shift plus Enter pentru rând nou."
+                placeholder="Type here. Enter sends. Shift plus Enter for new line."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -251,7 +339,12 @@ export default function ChatPage() {
               />
 
               <button
-                className="rounded-2xl border border-white/15 bg-zinc-900 px-6 py-3 text-sm font-semibold text-white hover:bg-zinc-800 transition disabled:opacity-50"
+                className="rounded-2xl border px-6 py-3 text-sm font-semibold transition disabled:opacity-50"
+                style={{
+                  borderColor: "var(--panelBorder)",
+                  background: "rgba(255,255,255,0.06)",
+                  color: "var(--appText)",
+                }}
                 onClick={send}
                 disabled={isLoading}
                 type="button"
@@ -260,13 +353,24 @@ export default function ChatPage() {
               </button>
             </div>
 
-            <div className="mt-2 text-xs text-white/50">
-              Web search e pentru întrebări care cer informații la zi.
+            <div className="mt-2 text-xs" style={{ color: "color-mix(in srgb, var(--appText) 55%, transparent)" }}>
+              Use web search for questions that need up to date information.
             </div>
           </footer>
         </div>
       </div>
+
+      <SettingsModal
+        open={settingsOpen}
+        theme={theme}
+        onClose={() => setSettingsOpen(false)}
+        onChange={(next) => setTheme(next)}
+        onSave={async () => {
+          if (saving) return;
+          await saveTheme();
+        }}
+        onReset={() => setTheme(defaultTheme)}
+      />
     </main>
   );
 }
-//backup  gen
