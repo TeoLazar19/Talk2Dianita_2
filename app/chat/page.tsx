@@ -68,7 +68,9 @@ export default function ChatPage() {
 
   async function send() {
     const text = input.trim();
-    if (!text || isLoading || !activeChatId) return;
+    if (!text) return;
+    if (isLoading) return;
+    if (!activeChatId) return;
 
     const nextMessages: Message[] = [...messages, { role: "user", text }];
     setMessages(nextMessages);
@@ -97,10 +99,7 @@ export default function ChatPage() {
         },
       ]);
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: "Request error. Check the terminal." },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", text: "Request error. Check the terminal." }]);
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +142,15 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col px-4 py-6">
+    <main
+      className="min-h-screen flex flex-col px-4 py-6"
+      style={{
+        writingMode: "horizontal-tb",
+        textOrientation: "mixed",
+        letterSpacing: "normal",
+        lineHeight: "normal",
+      }}
+    >
       <div className="mx-auto w-full max-w-5xl">
         <div
           className="rounded-3xl shadow-2xl overflow-hidden border"
@@ -151,19 +158,15 @@ export default function ChatPage() {
             background: "var(--t2d-panel-bg)",
             borderColor: "var(--t2d-panel-border)",
             color: "var(--t2d-app-text)",
+            writingMode: "horizontal-tb",
+            textOrientation: "mixed",
           }}
         >
-          <header
-            className="flex items-center justify-between px-5 py-4 border-b"
-            style={{ borderColor: "var(--t2d-panel-border)" }}
-          >
+          <header className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "var(--t2d-panel-border)" }}>
             <div className="flex items-start gap-4">
               <div className="flex flex-col gap-1">
                 <Image src="/logo-horizontal.png" alt="Talk2Dianita" width={160} height={40} priority />
-                <div
-                  className="text-xs truncate"
-                  style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}
-                >
+                <div className="text-xs truncate" style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}>
                   Logged in as {session?.user?.email}
                 </div>
               </div>
@@ -174,6 +177,8 @@ export default function ChatPage() {
                 style={{
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
+                  writingMode: "horizontal-tb",
+                  textOrientation: "mixed",
                 }}
                 onClick={() => setChatsOpen(true)}
               >
@@ -187,6 +192,8 @@ export default function ChatPage() {
                 style={{
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
+                  writingMode: "horizontal-tb",
+                  textOrientation: "mixed",
                 }}
               >
                 <input
@@ -203,6 +210,8 @@ export default function ChatPage() {
                 style={{
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
+                  writingMode: "horizontal-tb",
+                  textOrientation: "mixed",
                 }}
                 onClick={clearChat}
                 type="button"
@@ -215,6 +224,8 @@ export default function ChatPage() {
                 style={{
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
+                  writingMode: "horizontal-tb",
+                  textOrientation: "mixed",
                 }}
                 onClick={logout}
                 type="button"
@@ -224,7 +235,7 @@ export default function ChatPage() {
             </div>
           </header>
 
-          <section className="h-[68vh] overflow-auto px-5 py-5">
+          <section className="h-[68vh] overflow-auto px-5 py-5" style={{ writingMode: "horizontal-tb", textOrientation: "mixed" }}>
             <div className="space-y-4">
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -234,25 +245,21 @@ export default function ChatPage() {
                       borderColor: "var(--t2d-panel-border)",
                       background: m.role === "user" ? "var(--t2d-user-bubble-bg)" : "var(--t2d-assistant-bubble-bg)",
                       color: m.role === "user" ? "var(--t2d-user-text)" : "var(--t2d-assistant-text)",
+                      writingMode: "horizontal-tb",
+                      textOrientation: "mixed",
                     }}
                   >
-                    <div
-                      className="text-[11px] font-semibold"
-                      style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
-                    >
+                    <div className="text-[11px] font-semibold" style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}>
                       {m.role === "user" ? "You" : "Dianita"}
                     </div>
 
-                    <div className="mt-1">
+                    <div className="mt-1" style={{ writingMode: "horizontal-tb", textOrientation: "mixed" }}>
                       <ReactMarkdown>{m.text}</ReactMarkdown>
                     </div>
 
                     {m.role === "assistant" && m.sources?.length ? (
-                      <div className="mt-3 text-xs">
-                        <div
-                          className="font-semibold"
-                          style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
-                        >
+                      <div className="mt-3 text-xs" style={{ writingMode: "horizontal-tb", textOrientation: "mixed" }}>
+                        <div className="font-semibold" style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}>
                           Sources
                         </div>
                         <ul className="mt-1 list-disc pl-4 space-y-1">
@@ -282,6 +289,8 @@ export default function ChatPage() {
                       borderColor: "var(--t2d-panel-border)",
                       background: "var(--t2d-assistant-bubble-bg)",
                       color: "var(--t2d-assistant-text)",
+                      writingMode: "horizontal-tb",
+                      textOrientation: "mixed",
                     }}
                   >
                     <div className="text-[11px] font-semibold">Dianita</div>
@@ -294,7 +303,7 @@ export default function ChatPage() {
             </div>
           </section>
 
-          <footer className="border-t px-5 py-4" style={{ borderColor: "var(--t2d-panel-border)" }}>
+          <footer className="border-t px-5 py-4" style={{ borderColor: "var(--t2d-panel-border)", writingMode: "horizontal-tb", textOrientation: "mixed" }}>
             <div className="flex gap-3 items-end">
               <textarea
                 className="flex-1 rounded-2xl border p-4 text-sm resize-none"
@@ -302,6 +311,10 @@ export default function ChatPage() {
                   borderColor: "var(--t2d-input-border)",
                   background: "var(--t2d-input-bg)",
                   color: "var(--t2d-input-text)",
+                  writingMode: "horizontal-tb",
+                  textOrientation: "mixed",
+                  lineHeight: "1.4",
+                  letterSpacing: "normal",
                 }}
                 rows={2}
                 placeholder="Type here. Enter sends. Shift plus Enter for new line."
@@ -321,6 +334,8 @@ export default function ChatPage() {
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
                   opacity: isLoading || !activeChatId ? 0.6 : 1,
+                  writingMode: "horizontal-tb",
+                  textOrientation: "mixed",
                 }}
                 onClick={send}
                 disabled={isLoading || !activeChatId}
