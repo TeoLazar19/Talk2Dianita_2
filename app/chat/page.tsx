@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
-import SettingsModal from "./settingsModal";
+import SettingsFab from "./SettingsModal";
 
 type Source = {
   title?: string;
@@ -17,26 +17,6 @@ type Message = {
   sources?: Source[];
 };
 
-type Theme = {
-  appText: string;
-  panelBg: string;
-  panelBorder: string;
-  userBubbleBg: string;
-  assistantBubbleBg: string;
-  inputBg: string;
-  inputBorder: string;
-};
-
-const defaultTheme: Theme = {
-  appText: "#FFFFFF",
-  panelBg: "#09090B",
-  panelBorder: "rgba(255,255,255,0.15)",
-  userBubbleBg: "#27272A",
-  assistantBubbleBg: "#18181B",
-  inputBg: "#18181B",
-  inputBorder: "rgba(255,255,255,0.15)",
-};
-
 export default function ChatPage() {
   const { data: session, status } = useSession();
 
@@ -45,45 +25,12 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
 
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const isAuthed = useMemo(() => Boolean(session?.user?.email), [session?.user?.email]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
-
-  useEffect(() => {
-    if (!isAuthed) return;
-
-    (async () => {
-      try {
-        const res = await fetch("/api/preferences", { method: "GET" });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data?.theme) setTheme(data.theme);
-      } catch {}
-    })();
-  }, [isAuthed]);
-
-  async function saveTheme() {
-    setSaving(true);
-    try {
-      const res = await fetch("/api/preferences", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ theme }),
-      });
-      const data = await res.json();
-      if (data?.theme) setTheme(data.theme);
-      setSettingsOpen(false);
-    } finally {
-      setSaving(false);
-    }
-  }
 
   async function send() {
     const text = input.trim();
@@ -104,14 +51,14 @@ export default function ChatPage() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
 
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text: data.reply ?? "No reply received from server.",
-          sources: Array.isArray(data.sources) ? data.sources : [],
+          text: data?.reply ?? "No reply received from server.",
+          sources: Array.isArray(data?.sources) ? data.sources : [],
         },
       ]);
     } catch {
@@ -160,50 +107,35 @@ export default function ChatPage() {
     );
   }
 
-  const cssVars = {
-    ["--appText" as any]: theme.appText,
-    ["--panelBg" as any]: theme.panelBg,
-    ["--panelBorder" as any]: theme.panelBorder,
-    ["--userBubbleBg" as any]: theme.userBubbleBg,
-    ["--assistantBubbleBg" as any]: theme.assistantBubbleBg,
-    ["--inputBg" as any]: theme.inputBg,
-    ["--inputBorder" as any]: theme.inputBorder,
-  } as React.CSSProperties;
-
   return (
-    <main className="min-h-screen flex flex-col px-4 py-6" style={cssVars}>
+    <main className="min-h-screen flex flex-col px-4 py-6">
       <div className="mx-auto w-full max-w-5xl">
         <div
           className="rounded-3xl shadow-2xl overflow-hidden border"
-          style={{ background: "var(--panelBg)", borderColor: "var(--panelBorder)" }}
+          style={{ background: "var(--t2d-panel-bg)", borderColor: "var(--t2d-panel-border)", color: "var(--t2d-app-text)" }}
         >
-          <header className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "var(--panelBorder)" }}>
+          <header
+            className="flex items-center justify-between px-5 py-4 border-b"
+            style={{ borderColor: "var(--t2d-panel-border)" }}
+          >
             <div className="flex flex-col gap-1">
-              <Image
-                src="/logo-horizontal.png.png"
-                alt="Talk2Dianita"
-                width={160}
-                height={40}
-                priority
-              />
-              <div className="text-xs truncate" style={{ color: "color-mix(in srgb, var(--appText) 70%, transparent)" }}>
+              <Image src="/logo-horizontal.png.png" alt="Talk2Dianita" width={160} height={40} priority />
+              <div
+                className="text-xs truncate"
+                style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}
+              >
                 Logged in as {session?.user?.email}
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setSettingsOpen(true)}
-                className="rounded-xl border px-3 py-2 text-sm font-semibold transition"
-                style={{ borderColor: "var(--panelBorder)", color: "var(--appText)", background: "rgba(255,255,255,0.06)" }}
-              >
-                Settings
-              </button>
-
               <label
                 className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs"
-                style={{ borderColor: "var(--panelBorder)", color: "var(--appText)", background: "rgba(255,255,255,0.06)" }}
+                style={{
+                  borderColor: "var(--t2d-panel-border)",
+                  color: "var(--t2d-app-text)",
+                  background: "rgba(255,255,255,0.06)",
+                }}
               >
                 <input
                   type="checkbox"
@@ -216,7 +148,11 @@ export default function ChatPage() {
 
               <button
                 className="rounded-xl border px-3 py-2 text-sm transition"
-                style={{ borderColor: "var(--panelBorder)", color: "var(--appText)", background: "rgba(255,255,255,0.06)" }}
+                style={{
+                  borderColor: "var(--t2d-panel-border)",
+                  color: "var(--t2d-app-text)",
+                  background: "rgba(255,255,255,0.06)",
+                }}
                 onClick={clearChat}
                 type="button"
               >
@@ -225,7 +161,11 @@ export default function ChatPage() {
 
               <button
                 className="rounded-xl border px-3 py-2 text-sm font-semibold transition"
-                style={{ borderColor: "var(--panelBorder)", color: "var(--appText)", background: "rgba(255,255,255,0.06)" }}
+                style={{
+                  borderColor: "var(--t2d-panel-border)",
+                  color: "var(--t2d-app-text)",
+                  background: "rgba(255,255,255,0.06)",
+                }}
                 onClick={logout}
                 type="button"
               >
@@ -238,10 +178,13 @@ export default function ChatPage() {
             {messages.length === 0 ? (
               <div className="h-full flex items-center justify-center text-center">
                 <div>
-                  <div className="text-lg font-semibold" style={{ color: "var(--appText)" }}>
+                  <div className="text-lg font-semibold" style={{ color: "var(--t2d-app-text)" }}>
                     Type your first message
                   </div>
-                  <div className="mt-2 text-sm" style={{ color: "color-mix(in srgb, var(--appText) 60%, transparent)" }}>
+                  <div
+                    className="mt-2 text-sm"
+                    style={{ color: "color-mix(in srgb, var(--t2d-app-text) 60%, transparent)" }}
+                  >
                     The conversation starts when you send the first message.
                   </div>
                 </div>
@@ -253,12 +196,15 @@ export default function ChatPage() {
                     <div
                       className="max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed border"
                       style={{
-                        borderColor: "var(--panelBorder)",
-                        background: m.role === "user" ? "var(--userBubbleBg)" : "var(--assistantBubbleBg)",
-                        color: "var(--appText)",
+                        borderColor: "var(--t2d-panel-border)",
+                        background: m.role === "user" ? "var(--t2d-user-bubble-bg)" : "var(--t2d-assistant-bubble-bg)",
+                        color: m.role === "user" ? "var(--t2d-user-text)" : "var(--t2d-assistant-text)",
                       }}
                     >
-                      <div className="text-[11px] font-semibold" style={{ color: "color-mix(in srgb, var(--appText) 65%, transparent)" }}>
+                      <div
+                        className="text-[11px] font-semibold"
+                        style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
+                      >
                         {m.role === "user" ? "You" : "Dianita"}
                       </div>
 
@@ -266,19 +212,27 @@ export default function ChatPage() {
 
                       {m.role === "assistant" && m.sources?.length ? (
                         <div className="mt-3 text-xs">
-                          <div className="font-semibold" style={{ color: "color-mix(in srgb, var(--appText) 65%, transparent)" }}>
+                          <div
+                            className="font-semibold"
+                            style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
+                          >
                             Sources
                           </div>
                           <ul className="mt-1 list-disc pl-4 space-y-1">
                             {m.sources.slice(0, 5).map((s, idx) => (
-                              <li key={idx} style={{ color: "color-mix(in srgb, var(--appText) 70%, transparent)" }}>
+                              <li
+                                key={idx}
+                                style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}
+                              >
                                 {s.url ? (
                                   <a
                                     href={s.url}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="underline"
-                                    style={{ textDecorationColor: "color-mix(in srgb, var(--appText) 30%, transparent)" }}
+                                    style={{
+                                      textDecorationColor: "color-mix(in srgb, var(--t2d-app-text) 30%, transparent)",
+                                    }}
                                   >
                                     {s.title ?? s.url}
                                   </a>
@@ -299,12 +253,15 @@ export default function ChatPage() {
                     <div
                       className="max-w-[85%] rounded-2xl px-4 py-3 text-sm border"
                       style={{
-                        borderColor: "var(--panelBorder)",
-                        background: "var(--assistantBubbleBg)",
-                        color: "var(--appText)",
+                        borderColor: "var(--t2d-panel-border)",
+                        background: "var(--t2d-assistant-bubble-bg)",
+                        color: "var(--t2d-assistant-text)",
                       }}
                     >
-                      <div className="text-[11px] font-semibold" style={{ color: "color-mix(in srgb, var(--appText) 65%, transparent)" }}>
+                      <div
+                        className="text-[11px] font-semibold"
+                        style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
+                      >
                         Dianita
                       </div>
                       <div className="mt-1">Typing...</div>
@@ -317,14 +274,14 @@ export default function ChatPage() {
             )}
           </section>
 
-          <footer className="border-t px-5 py-4" style={{ borderColor: "var(--panelBorder)" }}>
+          <footer className="border-t px-5 py-4" style={{ borderColor: "var(--t2d-panel-border)" }}>
             <div className="flex gap-3 items-end">
               <textarea
                 className="flex-1 rounded-2xl border p-4 text-sm outline-none resize-none"
                 style={{
-                  borderColor: "var(--inputBorder)",
-                  background: "var(--inputBg)",
-                  color: "var(--appText)",
+                  borderColor: "var(--t2d-input-border)",
+                  background: "var(--t2d-input-bg)",
+                  color: "var(--t2d-input-text)",
                 }}
                 rows={2}
                 placeholder="Type here. Enter sends. Shift plus Enter for new line."
@@ -341,9 +298,9 @@ export default function ChatPage() {
               <button
                 className="rounded-2xl border px-6 py-3 text-sm font-semibold transition disabled:opacity-50"
                 style={{
-                  borderColor: "var(--panelBorder)",
+                  borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
-                  color: "var(--appText)",
+                  color: "var(--t2d-app-text)",
                 }}
                 onClick={send}
                 disabled={isLoading}
@@ -353,24 +310,17 @@ export default function ChatPage() {
               </button>
             </div>
 
-            <div className="mt-2 text-xs" style={{ color: "color-mix(in srgb, var(--appText) 55%, transparent)" }}>
+            <div
+              className="mt-2 text-xs"
+              style={{ color: "color-mix(in srgb, var(--t2d-app-text) 55%, transparent)" }}
+            >
               Use web search for questions that need up to date information.
             </div>
           </footer>
         </div>
       </div>
 
-      <SettingsModal
-        open={settingsOpen}
-        theme={theme}
-        onClose={() => setSettingsOpen(false)}
-        onChange={(next) => setTheme(next)}
-        onSave={async () => {
-          if (saving) return;
-          await saveTheme();
-        }}
-        onReset={() => setTheme(defaultTheme)}
-      />
+      <SettingsFab />
     </main>
   );
 }
