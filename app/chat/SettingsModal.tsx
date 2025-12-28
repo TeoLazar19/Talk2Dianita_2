@@ -112,8 +112,8 @@ export default function SettingsFab() {
     () => [
       makePreset(
         "purple",
-        "Mov",
-        "Calm, modern, contrast bun",
+        "Purple",
+        "Calm and Modern",
         { a: "#A855F7", b: "#3B0764", c: "#0B0212" },
         {
           panelBg: "#08010F",
@@ -131,8 +131,8 @@ export default function SettingsFab() {
       ),
       makePreset(
         "red",
-        "Roșu",
-        "Bold și energic",
+        "Red",
+        "Bold and Energic",
         { a: "#EF4444", b: "#7F1D1D", c: "#0B0505" },
         {
           panelBg: "#0B0505",
@@ -150,8 +150,8 @@ export default function SettingsFab() {
       ),
       makePreset(
         "pink",
-        "Roz",
-        "Soft, vibe nice",
+        "Pink",
+        "Soft, Nice Vibe",
         { a: "#EC4899", b: "#831843", c: "#0B0311" },
         {
           panelBg: "#0B0311",
@@ -170,7 +170,7 @@ export default function SettingsFab() {
       makePreset(
         "white",
         "Alb",
-        "Clean, light",
+        "Clean, Light",
         { a: "#FFFFFF", b: "#E5E7EB", c: "#111827" },
         {
           panelBg: "#FFFFFF",
@@ -188,8 +188,8 @@ export default function SettingsFab() {
       ),
       makePreset(
         "black",
-        "Negru",
-        "Ultra dark",
+        "Black",
+        "Ultra Dark",
         { a: "#111827", b: "#000000", c: "#0A0A0A" },
         {
           panelBg: "#000000",
@@ -206,28 +206,29 @@ export default function SettingsFab() {
         }
       ),
       makePreset(
-        "grayLight",
-        "Gri light",
-        "Neutru și calm",
-        { a: "#F3F4F6", b: "#D1D5DB", c: "#111827" },
+        "dianita",
+        "Dianita’s Theme",
+        "Dianita's Personal Theme",
+        { a: "#FF77C8", b: "#FFE0F2", c: "#FFF4FB" },
         {
-          panelBg: "#F3F4F6",
-          panelBorder: "rgba(17,24,39,0.10)",
-          userBubbleBg: "rgba(17,24,39,0.08)",
-          assistantBubbleBg: "rgba(17,24,39,0.06)",
-          inputBg: "rgba(17,24,39,0.04)",
-          inputBorder: "rgba(17,24,39,0.14)",
-          appText: "#0B1220",
-          userText: "#0B1220",
-          assistantText: "#0B1220",
-          inputText: "#0B1220",
-          placeholderText: "rgba(11,18,32,0.45)",
+          panelBg: "#FFF4FB",
+          panelBorder: "rgba(255, 105, 180, 0.28)",
+          userBubbleBg: "#FF77C8",
+          assistantBubbleBg: "#FFE0F2",
+          inputBg: "#FFFFFF",
+          inputBorder: "rgba(255, 105, 180, 0.35)",
+          appText: "#3B0A2A",
+          userText: "#2A001A",
+          assistantText: "#3B0A2A",
+          inputText: "#3B0A2A",
+          placeholderText: "rgba(59, 10, 42, 0.55)",
         }
-      ),
+),
+
       makePreset(
         "grayDark",
-        "Gri dark",
-        "Modern și discret",
+        "Dark Gray",
+        "Modern and discreet",
         { a: "#4B5563", b: "#111827", c: "#09090B" },
         {
           panelBg: "#09090B",
@@ -245,8 +246,8 @@ export default function SettingsFab() {
       ),
       makePreset(
         "yellow",
-        "Galben",
-        "Bright, dar lizibil",
+        "Yellow",
+        "Bright, readable",
         { a: "#FBBF24", b: "#92400E", c: "#0B0702" },
         {
           panelBg: "#0B0702",
