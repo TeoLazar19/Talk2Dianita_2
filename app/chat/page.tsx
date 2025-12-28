@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import SettingsFab from "./SettingsModal";
+import ReactMarkdown from "react-markdown";
 
 type Source = {
   title?: string;
@@ -112,7 +113,11 @@ export default function ChatPage() {
       <div className="mx-auto w-full max-w-5xl">
         <div
           className="rounded-3xl shadow-2xl overflow-hidden border"
-          style={{ background: "var(--t2d-panel-bg)", borderColor: "var(--t2d-panel-border)", color: "var(--t2d-app-text)" }}
+          style={{
+            background: "var(--t2d-panel-bg)",
+            borderColor: "var(--t2d-panel-border)",
+            color: "var(--t2d-app-text)",
+          }}
         >
           <header
             className="flex items-center justify-between px-5 py-4 border-b"
@@ -133,7 +138,6 @@ export default function ChatPage() {
                 className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs"
                 style={{
                   borderColor: "var(--t2d-panel-border)",
-                  color: "var(--t2d-app-text)",
                   background: "rgba(255,255,255,0.06)",
                 }}
               >
@@ -147,10 +151,9 @@ export default function ChatPage() {
               </label>
 
               <button
-                className="rounded-xl border px-3 py-2 text-sm transition"
+                className="rounded-xl border px-3 py-2 text-sm"
                 style={{
                   borderColor: "var(--t2d-panel-border)",
-                  color: "var(--t2d-app-text)",
                   background: "rgba(255,255,255,0.06)",
                 }}
                 onClick={clearChat}
@@ -160,10 +163,9 @@ export default function ChatPage() {
               </button>
 
               <button
-                className="rounded-xl border px-3 py-2 text-sm font-semibold transition"
+                className="rounded-xl border px-3 py-2 text-sm font-semibold"
                 style={{
                   borderColor: "var(--t2d-panel-border)",
-                  color: "var(--t2d-app-text)",
                   background: "rgba(255,255,255,0.06)",
                 }}
                 onClick={logout}
@@ -175,109 +177,87 @@ export default function ChatPage() {
           </header>
 
           <section className="h-[68vh] overflow-auto px-5 py-5">
-            {messages.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-center">
-                <div>
-                  <div className="text-lg font-semibold" style={{ color: "var(--t2d-app-text)" }}>
-                    Type your first message
-                  </div>
+            <div className="space-y-4">
+              {messages.map((m, i) => (
+                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className="mt-2 text-sm"
-                    style={{ color: "color-mix(in srgb, var(--t2d-app-text) 60%, transparent)" }}
+                    className="chat-bubble max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed border"
+                    style={{
+                      borderColor: "var(--t2d-panel-border)",
+                      background:
+                        m.role === "user"
+                          ? "var(--t2d-user-bubble-bg)"
+                          : "var(--t2d-assistant-bubble-bg)",
+                      color:
+                        m.role === "user"
+                          ? "var(--t2d-user-text)"
+                          : "var(--t2d-assistant-text)",
+                    }}
                   >
-                    The conversation starts when you send the first message.
+                    <div
+                      className="text-[11px] font-semibold"
+                      style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
+                    >
+                      {m.role === "user" ? "You" : "Dianita"}
+                    </div>
+
+                    <div className="mt-1">
+                      <ReactMarkdown>{m.text}</ReactMarkdown>
+                    </div>
+
+                    {m.role === "assistant" && m.sources?.length ? (
+                      <div className="mt-3 text-xs">
+                        <div
+                          className="font-semibold"
+                          style={{
+                            color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)",
+                          }}
+                        >
+                          Sources
+                        </div>
+                        <ul className="mt-1 list-disc pl-4 space-y-1">
+                          {m.sources.slice(0, 5).map((s, idx) => (
+                            <li key={idx}>
+                              {s.url ? (
+                                <a href={s.url} target="_blank" rel="noreferrer" className="underline">
+                                  {s.title ?? s.url}
+                                </a>
+                              ) : (
+                                <span>{s.title ?? "Source"}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {messages.map((m, i) => (
-                  <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div
-                      className="max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed border"
-                      style={{
-                        borderColor: "var(--t2d-panel-border)",
-                        background: m.role === "user" ? "var(--t2d-user-bubble-bg)" : "var(--t2d-assistant-bubble-bg)",
-                        color: m.role === "user" ? "var(--t2d-user-text)" : "var(--t2d-assistant-text)",
-                      }}
-                    >
-                      <div
-                        className="text-[11px] font-semibold"
-                        style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
-                      >
-                        {m.role === "user" ? "You" : "Dianita"}
-                      </div>
+              ))}
 
-                      <div className="mt-1 whitespace-pre-wrap">{m.text}</div>
-
-                      {m.role === "assistant" && m.sources?.length ? (
-                        <div className="mt-3 text-xs">
-                          <div
-                            className="font-semibold"
-                            style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
-                          >
-                            Sources
-                          </div>
-                          <ul className="mt-1 list-disc pl-4 space-y-1">
-                            {m.sources.slice(0, 5).map((s, idx) => (
-                              <li
-                                key={idx}
-                                style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}
-                              >
-                                {s.url ? (
-                                  <a
-                                    href={s.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="underline"
-                                    style={{
-                                      textDecorationColor: "color-mix(in srgb, var(--t2d-app-text) 30%, transparent)",
-                                    }}
-                                  >
-                                    {s.title ?? s.url}
-                                  </a>
-                                ) : (
-                                  <span>{s.title ?? "Source"}</span>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-                    </div>
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div
+                    className="chat-bubble max-w-[85%] rounded-2xl px-4 py-3 text-sm border"
+                    style={{
+                      borderColor: "var(--t2d-panel-border)",
+                      background: "var(--t2d-assistant-bubble-bg)",
+                      color: "var(--t2d-assistant-text)",
+                    }}
+                  >
+                    <div className="text-[11px] font-semibold">Dianita</div>
+                    <div className="mt-1">Typing...</div>
                   </div>
-                ))}
+                </div>
+              )}
 
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div
-                      className="max-w-[85%] rounded-2xl px-4 py-3 text-sm border"
-                      style={{
-                        borderColor: "var(--t2d-panel-border)",
-                        background: "var(--t2d-assistant-bubble-bg)",
-                        color: "var(--t2d-assistant-text)",
-                      }}
-                    >
-                      <div
-                        className="text-[11px] font-semibold"
-                        style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
-                      >
-                        Dianita
-                      </div>
-                      <div className="mt-1">Typing...</div>
-                    </div>
-                  </div>
-                )}
-
-                <div ref={bottomRef} />
-              </div>
-            )}
+              <div ref={bottomRef} />
+            </div>
           </section>
 
           <footer className="border-t px-5 py-4" style={{ borderColor: "var(--t2d-panel-border)" }}>
             <div className="flex gap-3 items-end">
               <textarea
-                className="flex-1 rounded-2xl border p-4 text-sm outline-none resize-none"
+                className="flex-1 rounded-2xl border p-4 text-sm resize-none"
                 style={{
                   borderColor: "var(--t2d-input-border)",
                   background: "var(--t2d-input-bg)",
@@ -296,11 +276,10 @@ export default function ChatPage() {
               />
 
               <button
-                className="rounded-2xl border px-6 py-3 text-sm font-semibold transition disabled:opacity-50"
+                className="rounded-2xl border px-6 py-3 text-sm font-semibold"
                 style={{
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
-                  color: "var(--t2d-app-text)",
                 }}
                 onClick={send}
                 disabled={isLoading}
@@ -308,13 +287,6 @@ export default function ChatPage() {
               >
                 Send
               </button>
-            </div>
-
-            <div
-              className="mt-2 text-xs"
-              style={{ color: "color-mix(in srgb, var(--t2d-app-text) 55%, transparent)" }}
-            >
-              Use web search for questions that need up to date information.
             </div>
           </footer>
         </div>

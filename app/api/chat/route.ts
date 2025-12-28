@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   try {
     if (!process.env.OPENAI_API_KEY) {
       return Response.json(
-        { reply: "Lipsește OPENAI_API_KEY în .env.local" },
+        { reply: "Add OPENAI_API_KEY in .env.local" },
         { status: 500 }
       );
     }
@@ -57,11 +57,11 @@ export async function POST(req: Request) {
       .slice(-20);
 
     if (cleaned.length === 0) {
-      return Response.json({ reply: "Trimite un mesaj valid." }, { status: 400 });
+      return Response.json({ reply: "Send a valid message." }, { status: 400 });
     }
 
     const systemPrompt =
-      "Ești Dianita. Răspunzi în română, clar și friendly. Dacă web search e activ, folosește l doar când e nevoie și pune surse.";
+      "You are Dianita. Answer in English, clear and friendly. If web search is active, use it when necessary and add the sources used too.";
 
     const input = [
       { role: "system" as const, content: systemPrompt },
@@ -78,13 +78,13 @@ export async function POST(req: Request) {
 
     const reply =
       String(response.output_text ?? "").trim() ||
-      "Nu am putut extrage un răspuns text din API.";
+      "I couldn't extract a text answer from the API.";
 
     const sources = webSearchEnabled ? extractWebSources(response) : [];
 
     return Response.json({ reply, sources });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Eroare necunoscută la OpenAI API.";
+    const msg = err instanceof Error ? err.message : "Unknown Error at OpenAI API.";
     return Response.json({ reply: msg }, { status: 500 });
   }
 }
