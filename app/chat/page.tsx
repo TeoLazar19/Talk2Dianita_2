@@ -6,6 +6,7 @@ import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import SettingsFab from "./SettingsModal";
 import ReactMarkdown from "react-markdown";
+import ChatDrawer from "./ChatDrawer";
 
 type Source = {
   title?: string;
@@ -26,7 +27,10 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
 
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [thinkingDots, setThinkingDots] = useState(0);
+
+  const [chatsOpen, setChatsOpen] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const isAuthed = useMemo(() => Boolean(session?.user?.email), [session?.user?.email]);
@@ -34,6 +38,20 @@ export default function ChatPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (!isAuthed) return;
+    if (activeChatId) return;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/chats", { method: "POST" });
+        const data = await res.json().catch(() => null);
+        const id = data?.chat?.id;
+        if (id) setActiveChatId(String(id));
+      } catch {}
+    })();
+  }, [isAuthed, activeChatId]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -50,7 +68,7 @@ export default function ChatPage() {
 
   async function send() {
     const text = input.trim();
-    if (!text || isLoading) return;
+    if (!text || isLoading || !activeChatId) return;
 
     const nextMessages: Message[] = [...messages, { role: "user", text }];
     setMessages(nextMessages);
@@ -62,6 +80,7 @@ export default function ChatPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          chatId: activeChatId,
           webSearch,
           messages: nextMessages.map((m) => ({ role: m.role, text: m.text })),
         }),
@@ -138,14 +157,28 @@ export default function ChatPage() {
             className="flex items-center justify-between px-5 py-4 border-b"
             style={{ borderColor: "var(--t2d-panel-border)" }}
           >
-            <div className="flex flex-col gap-1">
-              <Image src="/logo-horizontal.png" alt="Talk2Dianita" width={160} height={40} priority />
-              <div
-                className="text-xs truncate"
-                style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}
-              >
-                Logged in as {session?.user?.email}
+            <div className="flex items-start gap-4">
+              <div className="flex flex-col gap-1">
+                <Image src="/logo-horizontal.png" alt="Talk2Dianita" width={160} height={40} priority />
+                <div
+                  className="text-xs truncate"
+                  style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}
+                >
+                  Logged in as {session?.user?.email}
+                </div>
               </div>
+
+              <button
+                type="button"
+                className="mt-1 rounded-xl border px-3 py-2 text-sm font-semibold"
+                style={{
+                  borderColor: "var(--t2d-panel-border)",
+                  background: "rgba(255,255,255,0.06)",
+                }}
+                onClick={() => setChatsOpen(true)}
+              >
+                Chats
+              </button>
             </div>
 
             <div className="flex items-center gap-2">
@@ -199,14 +232,8 @@ export default function ChatPage() {
                     className="chat-bubble max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed border"
                     style={{
                       borderColor: "var(--t2d-panel-border)",
-                      background:
-                        m.role === "user"
-                          ? "var(--t2d-user-bubble-bg)"
-                          : "var(--t2d-assistant-bubble-bg)",
-                      color:
-                        m.role === "user"
-                          ? "var(--t2d-user-text)"
-                          : "var(--t2d-assistant-text)",
+                      background: m.role === "user" ? "var(--t2d-user-bubble-bg)" : "var(--t2d-assistant-bubble-bg)",
+                      color: m.role === "user" ? "var(--t2d-user-text)" : "var(--t2d-assistant-text)",
                     }}
                   >
                     <div
@@ -224,9 +251,7 @@ export default function ChatPage() {
                       <div className="mt-3 text-xs">
                         <div
                           className="font-semibold"
-                          style={{
-                            color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)",
-                          }}
+                          style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}
                         >
                           Sources
                         </div>
@@ -295,17 +320,27 @@ export default function ChatPage() {
                 style={{
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
+                  opacity: isLoading || !activeChatId ? 0.6 : 1,
                 }}
                 onClick={send}
-                disabled={isLoading}
+                disabled={isLoading || !activeChatId}
                 type="button"
               >
-                Send
+                {!activeChatId ? "Starting..." : "Send"}
               </button>
             </div>
           </footer>
         </div>
       </div>
+
+      <ChatDrawer
+        open={chatsOpen}
+        onClose={() => setChatsOpen(false)}
+        activeChatId={activeChatId}
+        onSetActiveChatId={(id) => setActiveChatId(id)}
+        onLoadMessages={(msgs) => setMessages(msgs)}
+        onClearMessages={() => setMessages([])}
+      />
 
       <SettingsFab />
     </main>
