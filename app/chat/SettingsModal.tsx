@@ -205,25 +205,27 @@ export default function SettingsFab() {
           placeholderText: "rgba(255,255,255,0.55)",
         }
       ),
-      makePreset(
-        "dianita",
-        "Dianita’s Theme",
-        "Dianita's Personal Theme",
-        { a: "#FF77C8", b: "#FFE0F2", c: "#FFF4FB" },
-        {
-          panelBg: "#FFF4FB",
-          panelBorder: "rgba(255, 105, 180, 0.28)",
-          userBubbleBg: "#FF77C8",
-          assistantBubbleBg: "#FFE0F2",
-          inputBg: "#FFFFFF",
-          inputBorder: "rgba(255, 105, 180, 0.35)",
-          appText: "#3B0A2A",
-          userText: "#2A001A",
-          assistantText: "#3B0A2A",
-          inputText: "#3B0A2A",
-          placeholderText: "rgba(59, 10, 42, 0.55)",
-        }
+makePreset(
+  "dianita",
+  "Dianita’s Theme",
+  "Roz bombon, cute, Dianita energy",
+  { a: "#FF4FB3", b: "#FF9AD5", c: "#FFD6EC" },
+  {
+    panelBg: "#FFD6EC",
+    panelBorder: "rgba(255, 79, 179, 0.45)",
+    userBubbleBg: "#FF4FB3",
+    assistantBubbleBg: "#FFB3DE",
+    inputBg: "#FFF0F8",
+    inputBorder: "rgba(255, 79, 179, 0.55)",
+
+    appText: "#6B0039",
+    userText: "#3D001F",
+    assistantText: "#6B0039",
+    inputText: "#6B0039",
+    placeholderText: "rgba(107, 0, 57, 0.55)",
+  }
 ),
+
 
       makePreset(
         "grayDark",
