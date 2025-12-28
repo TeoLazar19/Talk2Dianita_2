@@ -119,7 +119,7 @@ export default function ChatPage() {
             style={{ borderColor: "var(--t2d-panel-border)" }}
           >
             <div className="flex flex-col gap-1">
-              <Image src="/logo-horizontal.png.png" alt="Talk2Dianita" width={160} height={40} priority />
+              <Image src="/logo-horizontal.png" alt="Talk2Dianita" width={160} height={40} priority />
               <div
                 className="text-xs truncate"
                 style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}
