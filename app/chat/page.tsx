@@ -29,7 +29,6 @@ export default function ChatPage() {
 
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [thinkingDots, setThinkingDots] = useState(0);
-
   const [chatsOpen, setChatsOpen] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -68,9 +67,7 @@ export default function ChatPage() {
 
   async function send() {
     const text = input.trim();
-    if (!text) return;
-    if (isLoading) return;
-    if (!activeChatId) return;
+    if (!text || isLoading || !activeChatId) return;
 
     const nextMessages: Message[] = [...messages, { role: "user", text }];
     setMessages(nextMessages);
@@ -99,7 +96,10 @@ export default function ChatPage() {
         },
       ]);
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", text: "Request error. Check the terminal." }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: "Request error. Check the terminal." },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -142,15 +142,7 @@ export default function ChatPage() {
   }
 
   return (
-    <main
-      className="min-h-screen flex flex-col px-4 py-6"
-      style={{
-        writingMode: "horizontal-tb",
-        textOrientation: "mixed",
-        letterSpacing: "normal",
-        lineHeight: "normal",
-      }}
-    >
+    <main className="min-h-screen flex flex-col px-4 py-6">
       <div className="mx-auto w-full max-w-5xl">
         <div
           className="rounded-3xl shadow-2xl overflow-hidden border"
@@ -158,32 +150,20 @@ export default function ChatPage() {
             background: "var(--t2d-panel-bg)",
             borderColor: "var(--t2d-panel-border)",
             color: "var(--t2d-app-text)",
-            writingMode: "horizontal-tb",
-            textOrientation: "mixed",
           }}
         >
-          <header className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: "var(--t2d-panel-border)" }}>
-            <div className="flex items-start gap-4">
-              <div className="flex flex-col gap-1">
-                <Image src="/logo-horizontal.png" alt="Talk2Dianita" width={160} height={40} priority />
-                <div className="text-xs truncate" style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}>
-                  Logged in as {session?.user?.email}
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="mt-1 rounded-xl border px-3 py-2 text-sm font-semibold"
-                style={{
-                  borderColor: "var(--t2d-panel-border)",
-                  background: "rgba(255,255,255,0.06)",
-                  writingMode: "horizontal-tb",
-                  textOrientation: "mixed",
-                }}
-                onClick={() => setChatsOpen(true)}
+          <header
+            className="flex items-center justify-between px-5 py-4 border-b"
+            style={{ borderColor: "var(--t2d-panel-border)" }}
+          >
+            <div className="flex flex-col gap-1">
+              <Image src="/logo-horizontal.png" alt="Talk2Dianita" width={160} height={40} priority />
+              <div
+                className="text-xs truncate"
+                style={{ color: "color-mix(in srgb, var(--t2d-app-text) 70%, transparent)" }}
               >
-                Chats
-              </button>
+                Logged in as {session?.user?.email}
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -192,8 +172,6 @@ export default function ChatPage() {
                 style={{
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
-                  writingMode: "horizontal-tb",
-                  textOrientation: "mixed",
                 }}
               >
                 <input
@@ -210,8 +188,6 @@ export default function ChatPage() {
                 style={{
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
-                  writingMode: "horizontal-tb",
-                  textOrientation: "mixed",
                 }}
                 onClick={clearChat}
                 type="button"
@@ -224,8 +200,18 @@ export default function ChatPage() {
                 style={{
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
-                  writingMode: "horizontal-tb",
-                  textOrientation: "mixed",
+                }}
+                onClick={() => setChatsOpen(true)}
+                type="button"
+              >
+                Chats
+              </button>
+
+              <button
+                className="rounded-xl border px-3 py-2 text-sm font-semibold"
+                style={{
+                  borderColor: "var(--t2d-panel-border)",
+                  background: "rgba(255,255,255,0.06)",
                 }}
                 onClick={logout}
                 type="button"
@@ -235,66 +221,39 @@ export default function ChatPage() {
             </div>
           </header>
 
-          <section className="h-[68vh] overflow-auto px-5 py-5" style={{ writingMode: "horizontal-tb", textOrientation: "mixed" }}>
+          <section className="h-[68vh] overflow-auto px-5 py-5">
             <div className="space-y-4">
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className="chat-bubble max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed border"
+                    className="chat-bubble max-w-[85%] rounded-2xl px-4 py-3 text-sm border"
                     style={{
                       borderColor: "var(--t2d-panel-border)",
-                      background: m.role === "user" ? "var(--t2d-user-bubble-bg)" : "var(--t2d-assistant-bubble-bg)",
-                      color: m.role === "user" ? "var(--t2d-user-text)" : "var(--t2d-assistant-text)",
-                      writingMode: "horizontal-tb",
-                      textOrientation: "mixed",
+                      background:
+                        m.role === "user"
+                          ? "var(--t2d-user-bubble-bg)"
+                          : "var(--t2d-assistant-bubble-bg)",
+                      color:
+                        m.role === "user"
+                          ? "var(--t2d-user-text)"
+                          : "var(--t2d-assistant-text)",
                     }}
                   >
-                    <div className="text-[11px] font-semibold" style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}>
+                    <div className="text-[11px] font-semibold">
                       {m.role === "user" ? "You" : "Dianita"}
                     </div>
 
-                    <div className="mt-1" style={{ writingMode: "horizontal-tb", textOrientation: "mixed" }}>
+                    <div className="mt-1">
                       <ReactMarkdown>{m.text}</ReactMarkdown>
                     </div>
-
-                    {m.role === "assistant" && m.sources?.length ? (
-                      <div className="mt-3 text-xs" style={{ writingMode: "horizontal-tb", textOrientation: "mixed" }}>
-                        <div className="font-semibold" style={{ color: "color-mix(in srgb, var(--t2d-app-text) 65%, transparent)" }}>
-                          Sources
-                        </div>
-                        <ul className="mt-1 list-disc pl-4 space-y-1">
-                          {m.sources.slice(0, 5).map((s, idx) => (
-                            <li key={idx}>
-                              {s.url ? (
-                                <a href={s.url} target="_blank" rel="noreferrer" className="underline">
-                                  {s.title ?? s.url}
-                                </a>
-                              ) : (
-                                <span>{s.title ?? "Source"}</span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null}
                   </div>
                 </div>
               ))}
 
               {isLoading && (
                 <div className="flex justify-start">
-                  <div
-                    className="chat-bubble max-w-[85%] rounded-2xl px-4 py-3 text-sm border"
-                    style={{
-                      borderColor: "var(--t2d-panel-border)",
-                      background: "var(--t2d-assistant-bubble-bg)",
-                      color: "var(--t2d-assistant-text)",
-                      writingMode: "horizontal-tb",
-                      textOrientation: "mixed",
-                    }}
-                  >
-                    <div className="text-[11px] font-semibold">Dianita</div>
-                    <div className="mt-1">Thinking{".".repeat(thinkingDots)}</div>
+                  <div className="chat-bubble max-w-[85%] rounded-2xl px-4 py-3 text-sm border">
+                    Dianita is thinking{".".repeat(thinkingDots)}
                   </div>
                 </div>
               )}
@@ -303,7 +262,7 @@ export default function ChatPage() {
             </div>
           </section>
 
-          <footer className="border-t px-5 py-4" style={{ borderColor: "var(--t2d-panel-border)", writingMode: "horizontal-tb", textOrientation: "mixed" }}>
+          <footer className="border-t px-5 py-4" style={{ borderColor: "var(--t2d-panel-border)" }}>
             <div className="flex gap-3 items-end">
               <textarea
                 className="flex-1 rounded-2xl border p-4 text-sm resize-none"
@@ -311,13 +270,9 @@ export default function ChatPage() {
                   borderColor: "var(--t2d-input-border)",
                   background: "var(--t2d-input-bg)",
                   color: "var(--t2d-input-text)",
-                  writingMode: "horizontal-tb",
-                  textOrientation: "mixed",
-                  lineHeight: "1.4",
-                  letterSpacing: "normal",
                 }}
                 rows={2}
-                placeholder="Type here. Enter sends. Shift plus Enter for new line."
+                placeholder="Type here. Enter sends. Shift + Enter for new line."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -334,14 +289,12 @@ export default function ChatPage() {
                   borderColor: "var(--t2d-panel-border)",
                   background: "rgba(255,255,255,0.06)",
                   opacity: isLoading || !activeChatId ? 0.6 : 1,
-                  writingMode: "horizontal-tb",
-                  textOrientation: "mixed",
                 }}
                 onClick={send}
                 disabled={isLoading || !activeChatId}
                 type="button"
               >
-                {!activeChatId ? "Starting..." : "Send"}
+                Send
               </button>
             </div>
           </footer>
