@@ -9,16 +9,17 @@ datasource db {
 }
 
 model User {
-  id          String            @id @default(cuid())
-  email       String            @unique
-  name        String?
-  image       String?
+  id           String            @id @default(cuid())
+  email        String            @unique
+  name         String?
+  image        String?
+  passwordHash String?
 
-  preferences UserPreferences?
-  chats       ChatSession[]
+  preferences  UserPreferences?
+  chats        ChatSession[]
 
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 }
 
 model UserPreferences {
